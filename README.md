@@ -12,7 +12,7 @@ Notebooks xx.\* are illustrative and exemplify/contain runs from the operational
 
 _Currently only notebooks 01 and 02 are completely tested_
 
-__These are compatible at time of writing with the 0.2.0 version of the (IceNet library)[https://github.com/icenet-ai/icenet].__
+__These are compatible at time of writing with the 0.2.0 version of the [IceNet library](https://github.com/icenet-ai/icenet).__
 
 ### scratch\_ noteboooks
 
