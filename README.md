@@ -4,15 +4,15 @@ This repository contains instructional notebooks that describe how to use the li
 
 ### Instructional notebooks
 
+_Currently only notebooks 01 and 02 are completely tested_
+
 The notebooks 01-05 are intended for instruction and contain output from example runs.
 
 Notebooks xx.\* are illustrative and exemplify/contain runs from the operational infrastructure, but rely on the model run(s) they were run against. These are easily adaptable for your own local executions with IceNet.
 
 #### Status / Compatibility
 
-_Currently only notebooks 01 and 02 are completely tested_
-
-__These are compatible at time of writing with the 0.2.0 version of the [IceNet library](https://github.com/icenet-ai/icenet).__
+__These are compatible at time of writing with the 0.2.\* version of the [IceNet library](https://github.com/icenet-ai/icenet).__
 
 ### scratch\_ noteboooks
 
