@@ -16,19 +16,16 @@ class UNet(nn.Module):
     """
     
     def __init__(self,
-                 input_channels, 
-                 filter_size=3, 
-                 n_filters_factor=1, 
-                 n_forecast_days=6, 
-                 n_output_classes=3,
-                **kwargs):
+                 input_channels: int, 
+                 filter_size: int = 3, 
+                 n_filters_factor: int = 1, 
+                 n_forecast_days: int = 6):
         super(UNet, self).__init__()
 
         self.input_channels = input_channels
         self.filter_size = filter_size
         self.n_filters_factor = n_filters_factor
         self.n_forecast_days = n_forecast_days
-        self.n_output_classes = n_output_classes
 
         self.conv1a = nn.Conv2d(in_channels=input_channels, 
                                 out_channels=int(128*n_filters_factor),
@@ -64,7 +61,7 @@ class UNet(nn.Module):
                                 padding="same")  # no batch norm on last layer
 
         self.final_conv = nn.Conv2d(in_channels=int(128*n_filters_factor),
-                                    out_channels=n_output_classes*n_forecast_days,
+                                    out_channels=n_forecast_days,
                                     kernel_size=filter_size,
                                     padding="same")
         
@@ -99,14 +96,11 @@ class UNet(nn.Module):
 
         # transpose from shape (b, c, h, w) back to (b, h, w, c) to align with training data
         final_layer_logits = torch.movedim(final_layer_logits, 1, -1)  # move c from second to final dim
-        b, h, w, c = final_layer_logits.shape
 
-        final_layer_logits = final_layer_logits.reshape((b, h, w, self.n_output_classes, self.n_forecast_days))
-
-        # transpose from shape (b, h, w, t, c) to (b, h, w, t, c)
-        output = F.softmax(final_layer_logits, dim=-1)  # apply over n_output_classes dimension
+        # apply sigmoid
+        output = F.sigmoid(final_layer_logits)
         
-        return output  # shape (b, h, w, t, c)
+        return output  # shape (b, h, w, c)
 
 
 class LitUNet(pl.LightningModule):
@@ -128,7 +122,6 @@ class LitUNet(pl.LightningModule):
         self.model = model
         self.criterion = criterion
         self.learning_rate = learning_rate
-        self.n_output_classes = model.n_output_classes  # this should be a property of the network
 
         metrics = {
             "val_accuracy": IceNetAccuracy(leadtimes_to_evaluate=list(range(self.model.n_forecast_days))),
