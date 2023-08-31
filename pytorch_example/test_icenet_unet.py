@@ -17,7 +17,6 @@ def test_icenet_unet(
     lit_module_unet: pl.LightningModule, 
     seed: int,
     batch_size: int = 4,
-    shuffle: bool = True,
     num_workers: int = 0,
     persistent_workers: bool = False,
 ) -> tuple[np.ndarray]:
@@ -27,7 +26,7 @@ def test_icenet_unet(
     test_dataset = IceNetDataSetPyTorch(configuration_path=configuration_path, mode="test")
     test_dataloader = DataLoader(test_dataset,
                                  batch_size=batch_size,
-                                 shuffle=shuffle,
+                                 shuffle=False,
                                  num_workers=num_workers,
                                  persistent_workers=persistent_workers)
 

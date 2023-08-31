@@ -6,8 +6,12 @@ import torch
 from torch import nn
 import torch.nn.functional as F
 import lightning.pytorch as pl
-from torchmetrics import MetricCollection
-from metrics import IceNetAccuracy, SIEError
+# from torchmetrics import MetricCollection
+# from metrics import IceNetAccuracy, SIEError
+
+
+def weighted_mse_loss(input, target, weight):
+    return torch.sum(weight * (input - target) ** 2)
 
 
 class UNet(nn.Module):
@@ -19,7 +23,7 @@ class UNet(nn.Module):
                  input_channels: int, 
                  filter_size: int = 3, 
                  n_filters_factor: int = 1, 
-                 n_forecast_days: int = 6):
+                 n_forecast_days: int = 7):
         super(UNet, self).__init__()
 
         self.input_channels = input_channels
@@ -123,23 +127,23 @@ class LitUNet(pl.LightningModule):
         self.criterion = criterion
         self.learning_rate = learning_rate
 
-        metrics = {
-            "val_accuracy": IceNetAccuracy(leadtimes_to_evaluate=list(range(self.model.n_forecast_days))),
-            "val_sieerror": SIEError(leadtimes_to_evaluate=list(range(self.model.n_forecast_days)))
-        }
-        for i in range(self.model.n_forecast_days):
-            metrics[f"val_accuracy_{i}"] = IceNetAccuracy(leadtimes_to_evaluate=[i])
-            metrics[f"val_sieerror_{i}"] = SIEError(leadtimes_to_evaluate=[i])
-        self.metrics = MetricCollection(metrics)
+        # metrics = {
+        #     "val_accuracy": IceNetAccuracy(leadtimes_to_evaluate=list(range(self.model.n_forecast_days))),
+        #     "val_sieerror": SIEError(leadtimes_to_evaluate=list(range(self.model.n_forecast_days)))
+        # }
+        # for i in range(self.model.n_forecast_days):
+        #     metrics[f"val_accuracy_{i}"] = IceNetAccuracy(leadtimes_to_evaluate=[i])
+        #     metrics[f"val_sieerror_{i}"] = SIEError(leadtimes_to_evaluate=[i])
+        # self.metrics = MetricCollection(metrics)
 
-        test_metrics = {
-            "test_accuracy": IceNetAccuracy(leadtimes_to_evaluate=list(range(self.model.n_forecast_days))),
-            "test_sieerror": SIEError(leadtimes_to_evaluate=list(range(self.model.n_forecast_days)))
-        }
-        for i in range(self.model.n_forecast_days):
-            test_metrics[f"test_accuracy_{i}"] = IceNetAccuracy(leadtimes_to_evaluate=[i])
-            test_metrics[f"test_sieerror_{i}"] = SIEError(leadtimes_to_evaluate=[i])
-        self.test_metrics = MetricCollection(test_metrics)
+        # test_metrics = {
+        #     "test_accuracy": IceNetAccuracy(leadtimes_to_evaluate=list(range(self.model.n_forecast_days))),
+        #     "test_sieerror": SIEError(leadtimes_to_evaluate=list(range(self.model.n_forecast_days)))
+        # }
+        # for i in range(self.model.n_forecast_days):
+        #     test_metrics[f"test_accuracy_{i}"] = IceNetAccuracy(leadtimes_to_evaluate=[i])
+        #     test_metrics[f"test_sieerror_{i}"] = SIEError(leadtimes_to_evaluate=[i])
+        # self.test_metrics = MetricCollection(test_metrics)
 
         self.save_hyperparameters(ignore=["model", "criterion"])
 
@@ -160,67 +164,52 @@ class LitUNet(pl.LightningModule):
         :param batch_idx: Index of batch
         :return: Loss from this batch of data for use in backprop
         """
+        print("in training")
         x, y, sample_weight = batch
         y_hat = self.model(x)
-        print("in training")
         print(f"y.shape: {y.shape}")
+        print(f"y[:,:,:,:,0].shape: {y[:,:,:,:,0].shape}")
         print(f"y_hat.shape: {y_hat.shape}")
-        # y and y_hat are shape (b, h, w, t, c) but loss expects (b, c, h, w, t)
-        # note that criterion needs reduction="none" for weighting to work
-        if isinstance(self.criterion, nn.CrossEntropyLoss):
-            # requires int class encoding
-            loss = self.criterion(y_hat.movedim(-1, 1), y.argmax(-1).long())
-        else:
-            # requires one-hot encoding
-            loss = self.criterion(y_hat.movedim(-1, 1), y.movedim(-1, 1))
-        loss = torch.mean(loss * sample_weight.movedim(-1, 1))
+        print(f"sample_weight[:,:,:,:,0].shape: {sample_weight[:,:,:,:,0].shape}")
+        # y and sample_weight have shape (b, h, w, c, 1)
+        # y_hat has shape (b, h, w, c)
+        loss = self.criterion(y[:,:,:,:,0], y_hat)
+        loss = torch.mean(loss * sample_weight[:,:,:,:,0])
         self.log("train_loss", loss, sync_dist=True)
         return loss
 
     def validation_step(self, batch, batch_idx):
+        print("in validation")
         x, y, sample_weight = batch
         y_hat = self.model(x)
-        print("in validation")
         print(f"y.shape: {y.shape}")
+        print(f"y[:,:,:,:,0].shape: {y[:,:,:,:,0].shape}")
         print(f"y_hat.shape: {y_hat.shape}")
-        # y and y_hat are shape (b, h, w, t, c) but loss expects (b, c, h, w, t)
-        # note that criterion needs reduction="none" for weighting to work
-        if isinstance(self.criterion, nn.CrossEntropyLoss):
-            # requires int class encoding
-            loss = self.criterion(y_hat.movedim(-1, 1), y.argmax(-1).long())
-        else:
-            # requires one-hot encoding
-            loss = self.criterion(y_hat.movedim(-1, 1), y.movedim(-1, 1))
-        loss = torch.mean(loss * sample_weight.movedim(-1, 1))
+        print(f"sample_weight[:,:,:,:,0].shape: {sample_weight[:,:,:,:,0].shape}")
+        # y and sample_weight have shape (b, h, w, c, 1)
+        # y_hat has shape (b, h, w, c)
+        loss = self.criterion(y[:,:,:,:,0], y_hat)
+        loss = torch.mean(loss * sample_weight[:,:,:,:,0])
         self.log("val_loss", loss, on_step=False, on_epoch=True, sync_dist=True)  # epoch-level loss
-        y_hat_pred = y_hat.argmax(dim=-1).long()  # argmax over c where shape is (b, h, w, t, c)
-        self.metrics.update(y_hat_pred, y.argmax(dim=-1).long(), sample_weight.squeeze(dim=-1))  # shape (b, h, w, t)
         return loss
 
-    def on_validation_epoch_end(self):
-        self.log_dict(self.metrics.compute(), on_step=False, on_epoch=True, sync_dist=True)  # epoch-level metrics
-        self.metrics.reset()
+    # def on_validation_epoch_end(self):
+    #     self.log_dict(self.metrics.compute(), on_step=False, on_epoch=True, sync_dist=True)  # epoch-level metrics
+    #     self.metrics.reset()
 
     def test_step(self, batch, batch_idx):
         x, y, sample_weight = batch
         y_hat = self.model(x)
-        # y and y_hat are shape (b, h, w, t, c) but loss expects (b, c, h, w, t)
-        # note that criterion needs reduction="none" for weighting to work
-        if isinstance(self.criterion, nn.CrossEntropyLoss):
-            # requires int class encoding
-            loss = self.criterion(y_hat.movedim(-1, 1), y.argmax(-1).long())
-        else:
-            # requires one-hot encoding
-            loss = self.criterion(y_hat.movedim(-1, 1), y.movedim(-1, 1))
-        loss = torch.mean(loss * sample_weight.movedim(-1, 1))
+        # y and sample_weight have shape (b, h, w, c, 1)
+        # y_hat has shape (b, h, w, c)
+        loss = self.criterion(y[:,:,:,:,0], y_hat)
+        loss = torch.mean(loss * sample_weight[:,:,:,:,0])
         self.log("test_loss", loss, on_step=False, on_epoch=True, sync_dist=True)  # epoch-level loss
-        y_hat_pred = y_hat.argmax(dim=-1)  # argmax over c where shape is (b, h, w, t, c)
-        self.test_metrics.update(y_hat_pred, y.argmax(dim=-1).long(), sample_weight.squeeze(dim=-1))  # shape (b, h, w, t)
         return loss
 
-    def on_test_epoch_end(self):
-        self.log_dict(self.test_metrics.compute(),on_step=False, on_epoch=True, sync_dist=True)  # epoch-level metrics
-        self.test_metrics.reset()
+    # def on_test_epoch_end(self):
+    #     # self.log_dict(self.test_metrics.compute(),on_step=False, on_epoch=True, sync_dist=True)  # epoch-level metrics
+    #     self.test_metrics.reset()
 
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.parameters(), lr=self.learning_rate)

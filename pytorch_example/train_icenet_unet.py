@@ -10,8 +10,9 @@ from torch.utils.data import DataLoader
 import lightning.pytorch as pl
 from lightning.pytorch.callbacks import ModelCheckpoint
 
-from icenet_unet_small import UNet, LitUNet
+from icenet_unet_small import weighted_mse_loss, UNet, LitUNet
 from icenet_pytorch_dataset import IceNetDataSetPyTorch
+
 
 def train_icenet_unet(
     configuration_path: str,
@@ -38,9 +39,10 @@ def train_icenet_unet(
                                   shuffle=shuffle,
                                   num_workers=num_workers,
                                   persistent_workers=persistent_workers)
+    # no need to shuffle validation set
     val_dataloader = DataLoader(val_dataset,
                                 batch_size=batch_size,
-                                shuffle=shuffle,
+                                shuffle=False,
                                 num_workers=num_workers,
                                 persistent_workers=persistent_workers)
 
@@ -52,7 +54,7 @@ def train_icenet_unet(
         n_forecast_days=train_dataset._ds._config["n_forecast_days"]
     )
     
-    criterion = nn.CrossEntropyLoss(reduction="none")
+    criterion = nn.MSELoss(reduction="none")
     
     # configure PyTorch Lightning module
     lit_module = LitUNet(
