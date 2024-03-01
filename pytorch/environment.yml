@@ -241,4 +241,3 @@ dependencies:
       - yarl==1.9.4
       - zarr==2.17.0
       - zict==3.0.0
-prefix: /data/hpcdata/users/bryald/miniconda3/envs/pytorch_tensorflow
