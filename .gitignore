@@ -129,3 +129,12 @@ dmypy.json
 .pyre/
 
 /data
+
+# icenet run dirs
+*data/
+*_sicfile/
+*dataset_config*.json
+*lightning_logs/
+*loader.*.json
+*results/
+*testdates.csv
