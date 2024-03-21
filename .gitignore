@@ -138,6 +138,7 @@ dmypy.json
 *loader.*.json
 *logs/
 *network_datasets/
+*outputs/
 *plot/
 *processed/
 predict_dates.csv
