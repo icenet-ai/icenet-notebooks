@@ -1,0 +1,104 @@
+##
+# The following variables set the environment, _HOME and _CONDA should be set to
+# a default location to save you having to continually set these in your shell.
+# _ENVIRONMENT can usually be left alone, it helps when running via symlinked
+# pipeline directories which is common when running several distinct
+# environments
+#
+export ICENET_ENVIRONMENT=${ICENET_ENVIRONMENT:-"$( basename `realpath .` )"}
+export ICENET_HOME=${ICENET_HOME:-${HOME}/icenet/${ICENET_ENVIRONMENT}}
+export ICENET_CONDA=${ICENET_CONDA:-/data/hpcdata/users/${USER}/miniconda3/envs/icenet}
+
+##
+# Setting the data download arguments for variables and pressures/depths
+#
+export DATA_ARGS_ERA5="--vars uas,vas,tas,zg --levels ',,,500|250'"
+export DATA_ARGS_ORAS5=""
+
+##
+# Linking the preprocessing arguments to the above downloads, as well as the
+# SIC ground truth for the model
+#
+export PROC_ARGS_ERA5="--abs uas,vas --anom tas,zg500,zg250"
+export PROC_ARGS_ORAS5=""
+export PROC_ARGS_SIC="--abs siconca --trends siconca --trend-lead 7"
+
+##
+# Training and prediction parameters
+#
+export TRAIN_STATIC_ARGS=""
+export PREDICT_STATIC_ARGS=""
+
+export FILTER_FACTOR=0.4
+export FORECAST_DAYS=7
+export LAG=1
+export PREP_SCRIPT=local.sh
+
+export BATCH_SIZE=4
+export WORKERS=16
+
+##
+# HPC specifics - configure as appropriate for data (CPU) and training / prediction (GPU)
+#
+#    --partition=medium
+#    --account=medium
+#    --time=12:00:00
+#    --nodes=1
+#
+export ICENET_SLURM_ARGS="--chdir=$ICENET_HOME \
+    --output=${ICENET_HOME}/logs/icenet.%j.%N.out"
+export ICENET_SLURM_DATA_PART="--partition cpu-example --time 48:00:00"
+export ICENET_SLURM_RUN_PART="--partition gpu-example --time 24:00:00"
+
+##
+# Training date ranges
+#
+TUTORIAL_PIPELINE_TRAIN_START="2020-1-1,2020-3-1"
+TUTORIAL_PIPELINE_TRAIN_END="2020-2-29,2020-3-31"
+TUTORIAL_PIPELINE_VAL_START="2020-4-3"
+TUTORIAL_PIPELINE_VAL_END="2020-4-23"
+TUTORIAL_PIPELINE_TEST_START="2020-4-1"
+TUTORIAL_PIPELINE_TEST_END="2020-4-2"
+
+##
+# Training & Prediction ensemble run seeds
+#
+TUTORIAL_PIPELINE_ENSEMBLE_TRAIN_SEEDS="42,46"
+TUTORIAL_PIPELINE_ENSEMBLE_PREDICT_SEEDS="42,46"
+
+##
+# The prefix to use for training date ranges
+#
+PREFIX="TUTORIAL_PIPELINE"
+
+##
+# USER NOTE: you shouldn't need to configure anything further after this point!
+#
+
+##
+# Mapping variables, these shouldn't need changing but link to the usage of the
+# variables in scripts, meaning you can alter the scripts simply by creating
+# extra ranges and changing PREFIX
+#
+TRAIN_DATA_NAME=${PREFIX,,}
+TRAIN_START_NAME="${PREFIX}_TRAIN_START"
+TRAIN_END_NAME="${PREFIX}_TRAIN_END"
+VAL_START_NAME="${PREFIX}_VAL_START"
+VAL_END_NAME="${PREFIX}_VAL_END"
+TEST_START_NAME="${PREFIX}_TEST_START"
+TEST_END_NAME="${PREFIX}_TEST_END"
+
+ENSEMBLE_TRAIN_SEEDS_NAME="${PREFIX}_ENSEMBLE_TRAIN_SEEDS"
+ENSEMBLE_PREDICT_SEEDS_NAME="${PREFIX}_ENSEMBLE_PREDICT_SEEDS"
+
+# What are we exporting
+
+export TRAIN_START=${!TRAIN_START_NAME}
+export TRAIN_END=${!TRAIN_END_NAME}
+export VAL_START=${!VAL_START_NAME}
+export VAL_END=${!VAL_END_NAME}
+export TEST_START=${!TEST_START_NAME}
+export TEST_END=${!TEST_END_NAME}
+
+export ENSEMBLE_TRAIN_SEEDS=${!ENSEMBLE_TRAIN_SEEDS_NAME}
+export ENSEMBLE_PREDICT_SEEDS=${!ENSEMBLE_PREDICT_SEEDS_NAME}

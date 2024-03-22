@@ -136,5 +136,12 @@ dmypy.json
 *dataset_config*.json
 *lightning_logs/
 *loader.*.json
+*logs/
+*network_datasets/
+*outputs/
+*plot/
+*processed/
+predict_dates.csv
 *results/
 *testdates.csv
+*tmp/
