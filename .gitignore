@@ -131,7 +131,7 @@ dmypy.json
 /data
 
 # icenet run dirs
-*data/
+*data
 *_sicfile/
 *dataset_config*.json
 *lightning_logs/
