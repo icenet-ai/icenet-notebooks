@@ -30,6 +30,10 @@ Please ensure you have installed `netCDF4<=1.6` in your Python environment. You 
 pip install -U netCDF4<=1.6.0
 ```
 
+If you are running into setup issues, please use the conda `environment.yml` file from [icenet-pipeline](https://github.com/icenet-ai/icenet-pipeline) corresponding to the tagged version of this repository to create a python conda environment.
+
+All three main icenet-related repositories ([icenet](https://github.com/icenet-ai/icenet), [icenet-notebooks](https://github.com/icenet-ai/icenet-notebooks) and [icenet-pipeline](https://github.com/icenet-ai/icenet-pipeline)) share a common version tag.
+
 ### scratch\_ noteboooks
 
 Many of the other notebooks are scratch or potentially useful (or were once useful) when the codebase was being refactored. These are named scratch\_ to show that they're only potentially useful if you want to explore or adapt them.
