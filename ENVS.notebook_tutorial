@@ -12,14 +12,14 @@ export ICENET_CONDA=${ICENET_CONDA:-/data/hpcdata/users/${USER}/miniconda3/envs/
 ##
 # Setting the data download arguments for variables and pressures/depths
 #
-export DATA_ARGS_ERA5="--vars uas,vas,tas,zg --levels ',,,500|250'"
+export DATA_ARGS_ERA5="--vars uas,vas,zg --levels ',,,500|250'"
 export DATA_ARGS_ORAS5=""
 
 ##
 # Linking the preprocessing arguments to the above downloads, as well as the
 # SIC ground truth for the model
 #
-export PROC_ARGS_ERA5="--abs uas,vas --anom tas,zg500,zg250"
+export PROC_ARGS_ERA5="--abs uas,vas --anom zg500,zg250"
 export PROC_ARGS_ORAS5=""
 export PROC_ARGS_SIC="--abs siconca --trends siconca --trend-lead 7"
 
@@ -29,7 +29,7 @@ export PROC_ARGS_SIC="--abs siconca --trends siconca --trend-lead 7"
 export TRAIN_STATIC_ARGS=""
 export PREDICT_STATIC_ARGS=""
 
-export FILTER_FACTOR=0.4
+export FILTER_FACTOR=0.6
 export FORECAST_DAYS=7
 export LAG=1
 export PREP_SCRIPT=local.sh
