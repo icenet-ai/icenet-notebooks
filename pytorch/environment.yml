@@ -8,7 +8,7 @@ dependencies:
   - asttokens=2.4.1=pyhd8ed1ab_0
   - bzip2=1.0.8=h5eee18b_5
   - c-ares=1.19.1=h5eee18b_0
-  - ca-certificates=2024.2.2=hbcca054_0
+  - ca-certificates>=2026.10.19
   - comm=0.2.1=pyhd8ed1ab_0
   - debugpy=1.6.7=py311h6a678d5_0
   - decorator=5.1.1=pyhd8ed1ab_0
@@ -56,7 +56,7 @@ dependencies:
   - parso=0.8.3=pyhd8ed1ab_0
   - pexpect=4.9.0=pyhd8ed1ab_0
   - pickleshare=0.7.5=py_1003
-  - pip=23.3.1=py311h06a4308_0
+  - pip>=26.2.2
   - platformdirs=4.2.0=pyhd8ed1ab_0
   - prompt-toolkit=3.0.42=pyha770c72_0
   - psutil=5.9.0=py311h5eee18b_0
@@ -108,7 +108,7 @@ dependencies:
       - cachetools==5.3.3
       - cartopy==0.22.0
       - cdsapi==0.6.1
-      - certifi==2024.2.2
+      - certifi>=2026.10.19
       - cf-units==3.2.0
       - cffi==1.16.0
       - cfgrib==0.9.10.4
